@@ -1,8 +1,8 @@
 # Backscatter呼吸检测实验
 
-本目录包含报告中Backscatter进行模拟信息传感的实验实现。
+本目录包含报告中使用Backscatter进行模拟信息传感的实验实现。
 
-该实验是在WindScatter思路基础上的进一步探索：不再仅利用传感器产生数字开关事件，而是尝试将在背散射标签上，将**连续变化的传感电容转化为Lora信号频移**，并在接收端通过算法恢复呼吸波形。
+该实验是在WindScatter思路基础上的进一步探索：不再仅利用传感器产生数字开关事件，而是尝试将在背散射标签上，将**传感电容连续变化转化为Lora信号频移**，并在接收端通过算法恢复呼吸波形。
 
 ## 1. 目录结构
 
@@ -26,12 +26,11 @@ breathing_backscatter/
 各文件作用如下：
 
 * `pilot_tx.py`：生成实验使用的LoRa pilot + payload基带波形；
-* `lora_test.grc`：GNU Radio 实时收发与dechirp Flowgraph；
+* `lora_test.grc`：GNU Radio收发与dechirp Flowgraph；
 * `embedded_fm_extractor.py`：GNU Radio Embedded Python Block的代码副本，便于阅读；
 * `show.py`：通过ZeroMQ接收处理结果并实时显示频移；
 * `waveforms/`：由 `pilot_tx.py` 生成的波形文件；
 * `hardware/`：标签PCB原理图PDF与制版文件。
-
 
 ## 2. 标签端原理
 
@@ -84,10 +83,7 @@ AMP = 0.2
 
 ## 5. 生成发送波形
 
-首先运行：
-```bash
-python3 pilot_tx.py
-```
+首先运行pilot_tx.py
 
 程序将在：
 ```text

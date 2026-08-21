@@ -40,7 +40,7 @@ windscatter/
 * `capture.grc`：使用USRP B200采集原始IQ数据的GNU Radio Flowgraph；
 * `dechirp.py`：B200采集背散射信号的处理脚本；
 * `data/first.cfile`：USRP接收到的 `complex64`原始IQ数据。
-* `hardware`：原理图与PCB制版文件
+* `hardware`：原理图与PCB制板文件
 
 ## 2. 实验环境
 
@@ -91,6 +91,7 @@ display_seconds = 2.0
 其中 `threshold=10` 用于根据 FFT 峰值与平均频谱幅度之比进行 OOK 判决。
 
 ## 5. 原始 IQ 数据采集
+首先需根据原理图与制板文件，选择对应电子器件完成标签端PCB制作
 
 GNU Radio中打开capture.grc
 

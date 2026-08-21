@@ -1,0 +1,46 @@
+本目录包含报告中“连续模拟量 Backscatter 感知”实验的软件实现。
+
+该实验是在 WindScatter 思路基础上的进一步探索：不再仅利用传感器产生数字开关事件，而是尝试将连续变化的传感电容直接转换为 Backscatter 频率漂移，并在接收端恢复呼吸波形。
+
+各文件作用如下：
+
+pilot_tx.py：生成实验使用的 LoRa pilot + payload 波形；
+lora_test.grc：GNU Radio 实时收发与 dechirp Flowgraph；
+embedded_fm_extractor.py：GNU Radio Embedded Python Block 的代码副本，便于阅读；
+show.py：通过 ZeroMQ 接收处理结果并实时显示残余频率漂移；
+waveforms/：由 pilot_tx.py 自动生成的波形文件。
+
+完成完整硬件实验需要：
+
+Ettus USRP B200；
+Backscatter 标签PCB；
+TX/RX 天线；
+
+环境为 Vmware虚拟机，Ubuntu22.04，GNU Radio（python 3.10.1.1）， 并pip install numpy pyzmq PyQt5 pyqtgraph安装绘制库，实验并不持续发送完全相同的 LoRa chirp，而是每 8 个 LoRa符号中插入两个固定符号，其余符号随机。固定 pilot 符号的作用是给接收端提供稳定的频率参考窗口。
+
+首先运行：
+
+python3 pilot_tx.py
+
+程序将在：
+
+waveforms/
+
+目录中产生：
+
+lora_pilot_payload_tx_sf7_bw125k_fs250k.cf32  包含实际发送的符号序列
+lora_pilot_payload_ref_sf7_bw125k_fs250k.cf32 由普通 upchirp 构成，用于接收端 dechirp
+lora_pilot_payload_symbols.txt	记录实际生成的 symbol 序列，便于调试
+
+gnuradio打开lora_test.grc，SDR使用USRP B200，发射中心为 433 MHz，接收中心约为 441.55 MHz，USRP 接收数据与参考 chirp 进行复共轭相乘实现 dechirp，Embedded Python Block 的输入为 dechirp 后的数据，经过每个 LoRa symbol ↓ FFT ↓ 查找峰值频率 ↓ 统计不同 symbol slot 的稳定性 ↓ 自动识别固定 pilot slot ↓ 仅保留 pilot ↓ 估计中心频率 ↓ 去除固定频移与频偏 ↓ 输出残余频率漂移
+
+输出通过：tcp://127.0.0.1:5555发布，终端运行：
+
+python3 show.py
+
+show.py 通过 ZeroMQ SUB 接收数据并维护约 20 秒的缓冲区。
+
+正常工作时能够看到连续变化的频率漂移，即最终呼吸波形。
+
+
+

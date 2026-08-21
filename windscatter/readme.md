@@ -77,6 +77,7 @@ LoRa 扩频因子：SF = 7
 LoRa 带宽：BW = 125 kHz
 USRP 采样率：1 MS/s
 IQ 数据格式：complex64
+采集时间：2s
 ```
 对应 `dechirp.py` 中：
 ```python
@@ -85,8 +86,6 @@ bw = 125_000
 sf = 7
 threshold = 10
 display_seconds = 2.0
-update_seconds = 0.2
-hop_ratio = 8
 ```
 
 其中 `threshold=10` 用于根据 FFT 峰值与平均频谱幅度之比进行 OOK 判决。
@@ -100,7 +99,7 @@ GNU Radio中打开capture.grc
 2. 将接收天线连接到 `RX2`；
 3. 启动商用LoRa发射模块；
 4. Backscatter标签供电；
-5. 将 `center_freq` 设置为实际使用的LoRa载波频率；
+5. 将 `center_freq` 设置为实际使用的背散射频移后的LoRa信号频率；
 6. 启动Flowgraph采集IQ数据。
 
 当前Flowgraph将接收到的 IQ 保存为：
@@ -110,7 +109,7 @@ data/first.cfile
 
 采集数据类型为 `complex float32`，采样率为 1 MS/s。
 
- `capture_windscatter.grc` 中的 `center_freq` 应根据实际使用的 LoRa 信道重新设置。
+ `capture_windscatter.grc` 中的 `center_freq` 应根据实际使用的背散射频移后的LoRa信号频率重新设置。
 
 ## 6. 算法复现
 

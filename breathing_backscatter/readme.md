@@ -1,6 +1,6 @@
 # Backscatter呼吸检测实验
 
-本目录包含报告中Backscatter传感模拟信息的实验实现。
+本目录包含报告中Backscatter进行模拟信息传感的实验实现。
 
 该实验是在WindScatter思路基础上的进一步探索：不再仅利用传感器产生数字开关事件，而是尝试将**连续变化的传感电容直接转换为Backscatter频移**，并在接收端恢复呼吸波形。
 
@@ -16,11 +16,11 @@ breathing_backscatter/
 └── waveforms/
     ├── lora_pilot_payload_tx_sf7_bw125k_fs250k.cf32
     ├── lora_pilot_payload_ref_sf7_bw125k_fs250k.cf32
-    ├── lora_pilot_payload_symbols.txt
-    └── hardware/
-        ├── AD文件.zip
-        ├── Gerber文件.zip
-        └── 原理图PDF.pdf
+    └── lora_pilot_payload_symbols.txt
+├──hardware/
+      ├── AD文件.zip
+      ├── Gerber文件.zip
+      └── 原理图PDF.pdf
 ```
 
 各文件作用如下：
@@ -42,23 +42,22 @@ breathing_backscatter/
 ```text
 呼吸
  ↓
-电极等效电容变化
+电极电容变化
  ↓
 RC 振荡频率变化
  ↓
 Backscatter 调制频率变化
  ↓
-接收端残余频漂
+接收端计算频移
 ```
 
 ## 3. 软件环境
-使用VMWare虚拟机，Ubuntu22.04
-主要包括：
+使用VMWare虚拟机，Ubuntu22.04上的
 ```text
 Python 3
 GNU Radio 3.10
 ```
-Python 安装：
+Python库依赖
 ```bash
 pip install numpy pyzmq PyQt5 pyqtgraph
 ```
@@ -104,11 +103,7 @@ lora_pilot_payload_symbols.txt
 ```text
 lora_pilot_payload_tx_sf7_bw125k_fs250k.cf32
 ```
-包含实际发送的：
-```text
-pilot + random payload
-```
-LoRa symbol序列。
+包含实际发送的：pilot + random payload LoRa symbol序列。
 
 
 ```text
@@ -122,8 +117,9 @@ lora_pilot_payload_symbols.txt
 记录实际生成的 symbol 序列，便于调试检查。
 
 ## 6. GNU Radio实验
+首先需要根据原理图PDF与制板文件制作标签端PCB，并根据报告描述选择合适电阻、芯片等器件，制作柔性电极并贴附于衣物，从而完成标签制作
 
-GNU Radio中打开companion lora_test.grc
+GNU Radio中打开lora_test.grc
 
 实验 Flowgraph 的主要参数为：
 ```text
@@ -137,7 +133,7 @@ RX gain        = 30
 RX antenna     = RX2
 ```
 
-实际实验中，SDR 发射中心为 `433 MHz`，接收中心约为 `441.55 MHz`。
+实际实验中，SDR 发射中心为 `433 MHz`，接收中心约为 `441.55 MHz`。复现时接收中心频率需要根据实际背散射频移后的频率更改。
 
 TX File Source 循环发送：
 ```text
@@ -165,19 +161,17 @@ Embedded Python Block 的输入为 dechirp 后的 `complex64` 数据。
         ↓
 自动识别固定 pilot slot
         ↓
-仅保留 pilot
-        ↓
 估计中心频率
         ↓
 去除固定频移与频偏
         ↓
-输出残余频率漂移
+输出频移信息
 ```
 
 Block 会对每个symbol做FFT，并利用峰值相对于噪声底的质量进行判断。
 完成同步后，只在识别出的pilot时隙输出结果，payload被忽略。
 
-发送端每8个symbol中设置了两个连续 pilot，当前接收算法从中选择一个稳定slot 作为感知窗口，因此最终输出采样率约为：
+发送端每8个symbol中设置了两个连续 pilot，当前接收算法从中选择一个稳定slot 作为感知窗口，因此最终等效的采样率约为：
 
 ```text
 250000 / 256 / 8
